@@ -1,8 +1,114 @@
 # workflow - engine core v2
 # ref - cc_wf:6038b966166c12000f515a2f
 
-# disable marked messages from other service
-def disabled_service_integration(question):
+import math
+from types import CodeType
+
+
+NO = False
+if NO:
+    import re
+    from typing import Any
+    from time import time
+    import hashlib
+
+    class nonedict(dict):
+
+        def __init__(self, param: dict | None = None) -> None:
+            self._dict = param
+
+        # def __getattr__(self, name):
+        #     return getattr(self._dict, name)
+
+        # def __getitem__(self, key: Union[bytes, str]) -> Any:
+        #     return self._dict[key]
+
+        # def __setitem__(self, key: Union[bytes, str], value: Any) -> None:
+        #     self._dict[key] = value
+
+        # def __iter__(self):
+        #     return iter(self._dict)
+
+        # def __len__(self):
+        #     return len(self._dict)
+
+        # def __str__(self):
+        #     return str(self._dict)
+
+        # def __repr__(self):
+        #     return repr(self._dict)
+
+    class Ref:
+        def __init__(self, str: str) -> None:
+            self._str = str
+
+        def get_json(self):
+            return ''
+
+    def traceback_msg() -> None:
+        pass
+    question = ''
+    session_guid = ''
+    dialog_id = ''
+    last_state = {}
+    engine_context = {}
+    MAX_COUNT_TRAICBACK = 33
+    attachments = []
+    source = ''
+    sip_agi = {}
+    is_dev = 'False'
+    _make_reaction_ref = ''
+    owner_ref = ''
+    import copy
+    import json
+    __meta__ = {}
+
+    def json_serialize(state):
+        return ''
+
+    def conver_to_ref(str1: str):
+        return {}
+
+    import requests
+
+    # app_requests.post(
+    #     'cf',
+    #     'run_cf',
+    #     json={
+    #         "cf_ref": Ref(cf_ref).get_json(),
+    #         "app_ref": Ref(app_ref).get_json(),
+    #         "state": json.loads(json_serialize(state))
+    #     },
+    #     cookies={"ma_session": ma_session},
+    #     timeout=60
+    # )
+    base_url = ''
+
+    class app_requests():
+        def __init__(self, base_url: str):
+            self.base_url = base_url
+
+        @staticmethod
+        def post(endpoint: str, action: str, json: dict[str, Any] = {}, cookies: dict[str, str] = {},
+                 timeout: int = 60) -> requests.Response:
+            url = f"{base_url}/{endpoint}/{action}"
+            response = requests.post(
+                url,
+                json=json,
+                cookies=cookies,
+                timeout=timeout
+            )
+            return response
+
+    _cf_build_ec = ''
+    engine_config = ''
+
+    from opentelemetry import trace  # type: ignore
+
+    tracer = trace.get_tracer(__name__)
+
+
+def disabled_service_integration(question: str) -> str:
     if re.search("пишу из приложения 2гис.", question.lower()):
         target = "пишу из приложения 2гис."
         question = re.sub(target, "", question.lower())
@@ -69,14 +175,15 @@ engine_conf_name = None
 # region CONTEXT FUNCS
 
 
-def intent(net_name, class_id=None, min_prob=None, min_prob_class=0):
+def intent(net_name: str, class_id: int | list | None = None, min_prob: float = math.nan,
+           min_prob_class=0) -> str | bool:
     answer_id = nets.get(f"{net_name}_answer_id", None)
     answer_prob = nets.get(f"{net_name}_answer_prob", None)
 
     if answer_id is None or answer_prob is None:
         raise Exception(f'Nets "{net_name}" not found in intent function')
 
-    if min_prob is None:
+    if math.isnan(min_prob):
         min_prob = map_min_prob.get(net_name, map_min_prob["nets"])
 
     if float(answer_prob) < float(min_prob):
@@ -90,7 +197,7 @@ def intent(net_name, class_id=None, min_prob=None, min_prob_class=0):
         return str(answer_id) == str(class_id)
 
 
-def add_command(code: str, data: dict, sub_guids: list = None):
+def add_command(code: str, data: dict, sub_guids: list | None = None) -> None:
     global commands
     commands.append({
         "code": code,
@@ -103,7 +210,8 @@ def add_command(code: str, data: dict, sub_guids: list = None):
     })
 
 
-def add_event(event_name, event_start, event_timeout=None, event_data=None):
+def add_event(event_name: str, event_start: str, event_timeout: int | None = None,
+              event_data: dict | None = None) -> None:
     """
         event_start:
             - after_play
@@ -123,7 +231,7 @@ def add_event(event_name, event_start, event_timeout=None, event_data=None):
     })
 
 
-def reaction_self(reaction_name, reaction_self="nofaq"):
+def reaction_self(reaction_name: str, reaction_self: str = "nofaq") -> str:
 
     reaction_ref = map_reaction.get(reaction_name, None)
 
@@ -134,7 +242,7 @@ def reaction_self(reaction_name, reaction_self="nofaq"):
     return reaction_self
 
 
-def reaction(name, build_state={}, no_add: bool = False, **params):
+def reaction(name: str | list, build_state: dict = {}, no_add: bool = False, **params) -> dict | None:
     if isinstance(name, list):
         for n in name:
             reaction(n, build_state, **params)
@@ -179,7 +287,7 @@ def reaction(name, build_state={}, no_add: bool = False, **params):
     return message
 
 
-def reaction_callback(name, build_state={}, **params):
+def reaction_callback(name: str, build_state: dict = {}, **params) -> None:
     if not is_sip:
         return
     msg = reaction(name, build_state, no_add=True, **params)
@@ -192,7 +300,7 @@ def reaction_callback(name, build_state={}, **params):
     )
 
 
-def worktime_reaction(name, build_state={}, **params):
+def worktime_reaction(name: str | list, build_state: dict = {}, **params) -> dict | None:
     return reaction(
         name,
         build_state={
@@ -207,21 +315,21 @@ def worktime_reaction(name, build_state={}, **params):
     )
 
 
-def clear_reactions():
+def clear_reactions() -> None:
     global messages
     messages.clear()
 
 
-def set_break(flag=True):
+def set_break(flag: bool = True) -> None:
     global _is_break
     _is_break = flag
 
 
-def is_break():
+def is_break() -> bool:
     return _is_break
 
 
-def set_node(node_name=None, **settings):
+def set_node(node_name: str | None = None, **settings) -> None:
     global node_state
 
     if node_name is None:
@@ -243,7 +351,7 @@ def set_node(node_name=None, **settings):
     node_state = nonedict({**settings})
 
 
-def init_dialog_default(_state):
+def init_dialog_default(_state: dict) -> None:
     # TODO: make in engine_confe field with dialog_state_defaults as pyconf
     for key, val in _state.items():
         if key not in dialog_state:
@@ -257,10 +365,10 @@ def init_dialog_default(_state):
 class ExecContext:
     compile_cache = {}
 
-    def __init__(self, ctx) -> None:
-        self.ctx = {**ctx}
+    def __init__(self, ctx: dict) -> None:
+        self.ctx: dict = {**ctx}
 
-    def compile(self, name: str, code: str, code_hash: str = None):
+    def compile(self, name: str, code: str, code_hash: str | None = None) -> CodeType:
         code_hash = hashlib.md5(code.encode()).hexdigest()
         code_obj = self.compile_cache.get(code_hash)
         if code_obj is None:
@@ -268,7 +376,7 @@ class ExecContext:
             self.compile_cache[code_hash] = code_obj
         return code_obj
 
-    def exec(self, name, code):
+    def exec(self, name: str, code: str) -> None:
         try:
             code_obj = self.compile(name, code)
         except Exception:
@@ -279,7 +387,7 @@ class ExecContext:
         except Exception:
             raise Exception(f'Error exec "{name}" code:\n{traceback_msg()}')
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Any:
         return self.ctx.get(key, None)
 
 
@@ -347,24 +455,24 @@ class ExecObject:
 
 
 class PyCode(ExecObject):
-    def __init__(self, data):
+    def __init__(self, data: dict) -> None:
         super().__init__(
             f'pycode<{data["ref"]}>"{data["name"]}"', data["code"])
         self.code = data["code"]
         self.deps = data["deps"]
         self.name = data["name"]
 
-    def _exec_deps(self, ctx: ExecContext):
+    def _exec_deps(self, ctx: ExecContext) -> None:
         for dep in self.deps:
             dep.exec(ctx)
 
-    def run(self):
+    def run(self) -> None:
         ctx = make_exec_context()
         self.exec(ctx)
 
 
 class Node(ExecObject):
-    def __init__(self, data) -> None:
+    def __init__(self, data: dict) -> None:
         super().__init__(f'node<{data["ref"]}>"{data["name"]}"', data["code"])
         self.code = data["code"]
         self.defs = data["defs"]
@@ -376,11 +484,11 @@ class Node(ExecObject):
         self.no_preprocessing = data.get("no_preprocessing", False)
         self.no_postprocessing = data.get("no_postprocessing", False)
 
-    def _exec_deps(self, ctx: ExecContext):
+    def _exec_deps(self, ctx: ExecContext) -> None:
         for dep in self.deps:
             dep.exec(ctx)
 
-    def get_meta_json(self):
+    def get_meta_json(self) -> dict:
         global node_state
         return {
             "name": self.name,
@@ -390,30 +498,30 @@ class Node(ExecObject):
             "state": copy.deepcopy(dict(node_state))
         }
 
-    def init_state(self):
+    def init_state(self) -> None:
         global node_state
         for key, val in self.defs.items():
             if key not in node_state:
                 node_state[key] = val
 
-    def run(self):
+    def run(self) -> None:
         ctx = make_exec_context()
         self.exec(ctx)
         if ctx["node_func"]:
             ctx["node_func"]()
 
-    def run_preprocessing(self):
+    def run_preprocessing(self) -> None:
         global preprocess_code
         if not self.no_preprocessing and preprocess_code:
             preprocess_code.run()
 
-    def run_postprocessing(self):
+    def run_postprocessing(self) -> None:
         global postprocess_code
         if not self.no_postprocessing and postprocess_code:
             postprocess_code.run()
 
 
-def run_cf(cf_ref, state: dict):
+def run_cf(cf_ref: str, state: dict):
     app_ref = __meta__["app_ref"]
     ma_session = __meta__["ma_session"]
     rsp = app_requests.post(
@@ -433,7 +541,7 @@ def run_cf(cf_ref, state: dict):
     return conver_to_ref(rsp.json())
 
 
-def run_wf(state, wf_ref):
+def run_wf(state: dict, wf_ref: Ref) -> dict:
     rsp = app_requests.post(
         "wf",
         "run_wf",
@@ -453,7 +561,7 @@ def run_wf(state, wf_ref):
     return conver_to_ref(rsp.json())
 
 
-def get_from_link(obj_ref, fields: list):
+def get_from_link(obj_ref: Ref, fields: list) -> Any:
     rsp = app_requests.post(
         "wf",
         "getFromLink",
@@ -471,7 +579,7 @@ def get_from_link(obj_ref, fields: list):
     return rsp.json()
 
 
-def make_map_min_prob():
+def make_map_min_prob() -> None:
     global map_min_prob
 
     for key, value in settings.items():
@@ -482,7 +590,7 @@ def make_map_min_prob():
     map_min_prob["nets"] = map_min_prob.get("nets", 0.65)
 
 
-def make_pycode(data):
+def make_pycode(data: dict | None) -> PyCode | None:
     if data is None:
         return None
     data["deps"] = data["deps"] or []
@@ -490,7 +598,7 @@ def make_pycode(data):
     return PyCode(data)
 
 
-def make_node(data):
+def make_node(data: dict) -> Node:
     data["defs"] = data["defs"] or {}
     data["defs"] = {
         x["key"]: eval(x["value"])
@@ -501,7 +609,7 @@ def make_node(data):
     return Node(data)
 
 
-def build_engine_config():
+def build_engine_config() -> None:
     global map_reaction
     global map_nodes
     global nets_wf
@@ -547,7 +655,7 @@ def build_engine_config():
     engine_conf_name = data["engine_conf_name"]
 
 
-def init_states():
+def init_states() -> None:
     global dialog_state
     global node_state
     global engine_state
@@ -568,7 +676,7 @@ def init_states():
             engine_state["node"] = node
             engine_state["node_ver"] = node.ver
     else:
-        cause_reset = f'node_name or node_ver not defined'
+        cause_reset = 'node_name or node_ver not defined'
         is_reset = True
 
     if engine_state["version"] != ENGINE_VERSION:
@@ -597,7 +705,7 @@ def init_states():
     dialog_state["reaction_prob"] = None
 
 
-def make_nets():
+def make_nets() -> None:
     global nets
 
     if nets_wf:
@@ -610,7 +718,7 @@ def make_nets():
         )
 
 
-def clear_states():
+def clear_states() -> None:
     global dialog_state
     global node_state
     global engine_state
@@ -633,7 +741,7 @@ def clear_states():
         engine_state["node"] = engine_state["node"].get_meta_json()
 
 
-def run_logic():
+def run_logic() -> None:
     debug_obj["run_node"] = engine_state["node"].get_meta_json()
     debug_obj["end_node"] = None
 
@@ -649,10 +757,10 @@ def run_logic():
                 node_traiceback.append(node.get_meta_json())
 
                 if len(node_traiceback) > MAX_COUNT_TRAICBACK:
-                    raise Exception(f'Max count traicback')
+                    raise Exception('Max count traicback')
 
                 node.run()
-            except Exception as e:
+            except Exception:
                 raise Exception(
                     f'Error in {node.name} node({node.ref}):\n{traceback_msg()}')
 
