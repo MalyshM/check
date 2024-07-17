@@ -1,52 +1,20 @@
 # workflow - engine core v2
 # ref - cc_wf:6038b966166c12000f515a2f
 
-import math
-from types import CodeType
-
-
 NO = False
 if NO:
+    import math
     import re
+    import hashlib
+    import copy
+    import json
+    import requests
+
+    from types import CodeType
     from typing import Any
     from time import time
-    import hashlib
+    from contextlib import contextmanager
 
-    class nonedict(dict):
-
-        def __init__(self, param: dict | None = None) -> None:
-            self._dict = param
-
-        # def __getattr__(self, name):
-        #     return getattr(self._dict, name)
-
-        # def __getitem__(self, key: Union[bytes, str]) -> Any:
-        #     return self._dict[key]
-
-        # def __setitem__(self, key: Union[bytes, str], value: Any) -> None:
-        #     self._dict[key] = value
-
-        # def __iter__(self):
-        #     return iter(self._dict)
-
-        # def __len__(self):
-        #     return len(self._dict)
-
-        # def __str__(self):
-        #     return str(self._dict)
-
-        # def __repr__(self):
-        #     return repr(self._dict)
-
-    class Ref:
-        def __init__(self, str: str) -> None:
-            self._str = str
-
-        def get_json(self):
-            return ''
-
-    def traceback_msg() -> None:
-        pass
     question = ''
     session_guid = ''
     dialog_id = ''
@@ -59,53 +27,46 @@ if NO:
     is_dev = 'False'
     _make_reaction_ref = ''
     owner_ref = ''
-    import copy
-    import json
     __meta__ = {}
+    base_url = ''
+    _cf_build_ec = ''
+    engine_config = ''
+
+    class tracer:
+        @contextmanager
+        @staticmethod
+        def active_span(*args, **kwargs) -> Any:
+            ...
+
+    class nonedict(dict):
+        ...
+
+    class Ref:
+        def __init__(self, str: str) -> None:
+            self._str = str
+
+        def get_json(self):
+            return ''
+
+    class app_requests():
+
+        @staticmethod
+        def post(endpoint: str,
+                 action: str,
+                 json: dict[str, Any] = {},
+                 cookies: dict[str, str] = {},
+                 timeout: int = 60
+                 ) -> requests.Response:
+            ...
+
+    def traceback_msg() -> None:
+        pass
 
     def json_serialize(state):
         return ''
 
     def conver_to_ref(str1: str):
         return {}
-
-    import requests
-
-    # app_requests.post(
-    #     'cf',
-    #     'run_cf',
-    #     json={
-    #         "cf_ref": Ref(cf_ref).get_json(),
-    #         "app_ref": Ref(app_ref).get_json(),
-    #         "state": json.loads(json_serialize(state))
-    #     },
-    #     cookies={"ma_session": ma_session},
-    #     timeout=60
-    # )
-    base_url = ''
-
-    class app_requests():
-        def __init__(self, base_url: str):
-            self.base_url = base_url
-
-        @staticmethod
-        def post(endpoint: str, action: str, json: dict[str, Any] = {}, cookies: dict[str, str] = {},
-                 timeout: int = 60) -> requests.Response:
-            url = f"{base_url}/{endpoint}/{action}"
-            response = requests.post(
-                url,
-                json=json,
-                cookies=cookies,
-                timeout=timeout
-            )
-            return response
-
-    _cf_build_ec = ''
-    engine_config = ''
-
-    from opentelemetry import trace  # type: ignore
-
-    tracer = trace.get_tracer(__name__)
 
 
 def disabled_service_integration(question: str) -> str:
@@ -175,16 +136,21 @@ engine_conf_name = None
 # region CONTEXT FUNCS
 
 
-def intent(net_name: str, class_id: int | list | None = None, min_prob: float = math.nan,
-           min_prob_class=0) -> str | bool:
+def intent(net_name: str,
+           class_id: int | list | None = None,
+           min_prob: float | None = None,
+           min_prob_class=0
+           ) -> str | bool:
     answer_id = nets.get(f"{net_name}_answer_id", None)
     answer_prob = nets.get(f"{net_name}_answer_prob", None)
 
     if answer_id is None or answer_prob is None:
         raise Exception(f'Nets "{net_name}" not found in intent function')
 
-    if math.isnan(min_prob):
+    if min_prob is None:
         min_prob = map_min_prob.get(net_name, map_min_prob["nets"])
+        if not isinstance(min_prob, float):
+            raise Exception(f'min_prob "{min_prob}" is not valid')
 
     if float(answer_prob) < float(min_prob):
         answer_id = min_prob_class
